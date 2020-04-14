@@ -1,6 +1,7 @@
 
 locals {
-  cert-manager-version = "v0.8.1"
+  cert-manager-version = "v0.14.1"
+  crd-path             = "https://github.com/jetstack/cert-manager/releases/download"
 }
 
 resource "kubernetes_namespace" "cert_manager" {
@@ -46,7 +47,7 @@ data "aws_iam_policy_document" "cert_manager" {
   statement {
     actions = ["route53:ChangeResourceRecordSets"]
 
-    resources = [ "arn:aws:route53:::hostedzone/${var.hostzone}" ]
+    resources = ["arn:aws:route53:::hostedzone/${var.hostzone}"]
   }
 
   statement {
@@ -58,6 +59,11 @@ data "aws_iam_policy_document" "cert_manager" {
     actions   = ["route53:ListHostedZonesByName"]
     resources = ["*"]
   }
+
+  statement {
+    actions   = ["sts:AssumeRole"]
+    resources = [aws_iam_role.cert_manager.arn]
+  }
 }
 
 resource "aws_iam_role_policy" "cert_manager" {
@@ -66,29 +72,17 @@ resource "aws_iam_role_policy" "cert_manager" {
   policy = data.aws_iam_policy_document.cert_manager.json
 }
 
-data "http" "cert_manager_crds" {
-  url = "https://raw.githubusercontent.com/jetstack/cert-manager/${local.cert-manager-version}/deploy/manifests/00-crds.yaml"
-}
-
 resource "null_resource" "cert_manager_crds" {
   provisioner "local-exec" {
-    command = <<EOS
-kubectl apply -n cert-manager -f - <<EOF
-${data.http.cert_manager_crds.body}
-EOF
-EOS
-
+    command = "kubectl apply -n cert-manager --validate=false -f ${local.crd-path}/${local.cert-manager-version}/cert-manager.crds.yaml"
   }
-
   provisioner "local-exec" {
     when = destroy
-
     # destroying the CRDs also deletes all resources of type "certificate" (not the actual certs, those are in secrets of type "tls")
     command = "exit 0"
   }
-
   triggers = {
-    contents_crds = sha1(data.http.cert_manager_crds.body)
+    content = sha1("${local.crd-path}/${local.cert-manager-version}/cert-manager.crds.yaml")
   }
 }
 
@@ -120,34 +114,48 @@ resource "helm_release" "cert_manager" {
   }
 }
 
+data "template_file" "clusterissuers_staging" {
+  template = "${file("${path.module}/templates/clusterIssuers.yaml.tpl")}"
+  vars = {
+    env         = "staging"
+    acme_server = "https://acme-staging-v02.api.letsencrypt.org/directory"
+    iam_role    = aws_iam_role.cert_manager.name
+  }
+}
+
+data "template_file" "clusterissuers_production" {
+  template = "${file("${path.module}/templates/clusterIssuers.yaml.tpl")}"
+  vars = {
+    env         = "production"
+    acme_server = "https://acme-v02.api.letsencrypt.org/directory"
+    iam_role    = aws_iam_role.cert_manager.name
+  }
+}
+
 resource "null_resource" "cert_manager_issuers" {
   depends_on = [helm_release.cert_manager]
 
   provisioner "local-exec" {
-    command = "kubectl apply -n cert-manager -f ${path.module}/resources/letsencrypt-production.yaml"
+    command = "kubectl apply -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_production.rendered}\nEOF"
   }
 
   provisioner "local-exec" {
-    command = "kubectl apply -n cert-manager -f ${path.module}/resources/letsencrypt-staging.yaml"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "kubectl delete -n cert-manager -f ${path.module}/resources/letsencrypt-production.yaml"
+    command = "kubectl apply -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_staging.rendered}\nEOF"
   }
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete -n cert-manager -f ${path.module}/resources/letsencrypt-staging.yaml"
+    command = "kubectl delete -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_production.rendered}\nEOF"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_staging.rendered}\nEOF"
   }
 
   triggers = {
-    contents_production = filesha1(
-      "${path.module}/resources/letsencrypt-production.yaml",
-    )
-    contents_staging = filesha1(
-      "${path.module}/resources/letsencrypt-staging.yaml",
-    )
+    contents_staging    = sha1(data.template_file.clusterissuers_staging.rendered)
+    contents_production = sha1(data.template_file.clusterissuers_production.rendered)
   }
 }
 
@@ -158,16 +166,15 @@ resource "null_resource" "cert_manager_monitoring" {
   ]
 
   provisioner "local-exec" {
-    command = "kubectl apply -n cert-manager -f ${path.module}/resources/monitoring/"
+    command = "kubectl apply -n cert-manager -f ${path.module}/resources/monitoring/alerts.yaml"
   }
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete -n cert-manager -f ${path.module}/resources/monitoring/"
+    command = "kubectl delete -n cert-manager -f ${path.module}/resources/monitoring/alerts.yaml"
   }
 
   triggers = {
-    servicemonitor = filesha1("${path.module}/resources/monitoring/servicemonitor.yaml")
     alerts         = filesha1("${path.module}/resources/monitoring/alerts.yaml")
   }
 }

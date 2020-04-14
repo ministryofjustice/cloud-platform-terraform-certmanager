@@ -11,3 +11,7 @@ securityContext:
 podAnnotations:
   iam.amazonaws.com/role: "${certmanager_role}"
 
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true
