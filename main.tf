@@ -76,7 +76,7 @@ data "template_file" "clusterissuers_staging" {
   vars = {
     env         = "staging"
     acme_server = "https://acme-staging-v02.api.letsencrypt.org/directory"
-    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.name
+    iam_role    = var.eks ? module.iam_assumable_role_admin.this_iam_role_arn : aws_iam_role.cert_manager.0.arn
   }
 }
 
@@ -85,7 +85,7 @@ data "template_file" "clusterissuers_production" {
   vars = {
     env         = "production"
     acme_server = "https://acme-v02.api.letsencrypt.org/directory"
-    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.name
+    iam_role    = var.eks ? module.iam_assumable_role_admin.this_iam_role_arn : aws_iam_role.cert_manager.0.arn
   }
 }
 
