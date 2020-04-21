@@ -1,4 +1,4 @@
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-${env}
@@ -13,10 +13,12 @@ spec:
       name: letsencrypt-${env}
     # Enable the DNS-01 challenge provider
     solvers:
-    - selector:
+    - selector: {}
       dns01:
         cnameStrategy: "Follow"
         # Here we define a list of DNS-01 providers that can solve DNS challenges
         route53:
           region: eu-west-2
+          %{ if eks == false ~}
           role: ${iam_role}
+          %{ endif ~}

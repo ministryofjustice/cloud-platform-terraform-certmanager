@@ -16,6 +16,10 @@ module "cert_manager" {
   dependence_prometheus  = module.prometheus.helm_prometheus_operator_status
   dependence_deploy      = null_resource.deploy
   dependence_opa         = module.opa.helm_opa_status
+
+  # This section is for EKS
+  eks                         = true
+  eks_cluster_oidc_issuer_url = data.terraform_remote_state.cluster.outputs.cluster_oidc_issuer_url
 }
 ```
 
