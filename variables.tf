@@ -21,5 +21,17 @@ variable "cluster_domain_name" {
 
 variable "hostzone" {
   description = "In order to solve ACME Challenges certmanager creates DNS records. We should limit the scope to certain hostzone. If star (*) is used certmanager will control all hostzones"
+}
 
+# EKS variables
+variable "eks" {
+  description = "Where are you applying this modules in kOps cluster or in EKS (KIAM or KUBE2IAM?)"
+  type        = bool
+  default     = false
+}
+
+variable "eks_cluster_oidc_issuer_url" {
+  description = "If EKS variable is set to true this is going to be used when we create the IAM OIDC role"
+  type        = string
+  default     = ""
 }

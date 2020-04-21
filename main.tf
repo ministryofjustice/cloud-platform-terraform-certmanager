@@ -22,54 +22,9 @@ resource "kubernetes_namespace" "cert_manager" {
       "cloud-platform.justice.gov.uk/owner"                         = "Cloud Platform: platforms@digital.justice.gov.uk"
       "cloud-platform.justice.gov.uk/source-code"                   = "https://github.com/ministryofjustice/cloud-platform-infrastructure"
       "cloud-platform.justice.gov.uk/can-use-loadbalancer-services" = "true"
-      "iam.amazonaws.com/permitted"                                 = aws_iam_role.cert_manager.name
+      "iam.amazonaws.com/permitted"                                 = var.eks ? "" : aws_iam_role.cert_manager.0.name
     }
   }
-}
-
-data "aws_iam_policy_document" "cert_manager_assume" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "AWS"
-      identifiers = [var.iam_role_nodes]
-    }
-  }
-}
-
-resource "aws_iam_role" "cert_manager" {
-  name               = "cert-manager.${var.cluster_domain_name}"
-  assume_role_policy = data.aws_iam_policy_document.cert_manager_assume.json
-}
-
-data "aws_iam_policy_document" "cert_manager" {
-  statement {
-    actions = ["route53:ChangeResourceRecordSets"]
-
-    resources = ["arn:aws:route53:::hostedzone/${var.hostzone}"]
-  }
-
-  statement {
-    actions   = ["route53:GetChange"]
-    resources = ["arn:aws:route53:::change/*"]
-  }
-
-  statement {
-    actions   = ["route53:ListHostedZonesByName"]
-    resources = ["*"]
-  }
-
-  statement {
-    actions   = ["sts:AssumeRole"]
-    resources = [aws_iam_role.cert_manager.arn]
-  }
-}
-
-resource "aws_iam_role_policy" "cert_manager" {
-  name   = "route53"
-  role   = aws_iam_role.cert_manager.id
-  policy = data.aws_iam_policy_document.cert_manager.json
 }
 
 resource "null_resource" "cert_manager_crds" {
@@ -100,7 +55,9 @@ resource "helm_release" "cert_manager" {
   recreate_pods = true
 
   values = [templatefile("${path.module}/templates/values.yaml.tpl", {
-    certmanager_role = aws_iam_role.cert_manager.name
+    certmanager_role = var.eks ? "" : aws_iam_role.cert_manager.0.name
+    eks = var.eks
+    eks_service_account = module.iam_assumable_role_admin.this_iam_role_arn
   })]
 
   depends_on = [
@@ -119,7 +76,7 @@ data "template_file" "clusterissuers_staging" {
   vars = {
     env         = "staging"
     acme_server = "https://acme-staging-v02.api.letsencrypt.org/directory"
-    iam_role    = aws_iam_role.cert_manager.name
+    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.name
   }
 }
 
@@ -128,7 +85,7 @@ data "template_file" "clusterissuers_production" {
   vars = {
     env         = "production"
     acme_server = "https://acme-v02.api.letsencrypt.org/directory"
-    iam_role    = aws_iam_role.cert_manager.name
+    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.name
   }
 }
 
@@ -175,7 +132,7 @@ resource "null_resource" "cert_manager_monitoring" {
   }
 
   triggers = {
-    alerts         = filesha1("${path.module}/resources/monitoring/alerts.yaml")
+    alerts = filesha1("${path.module}/resources/monitoring/alerts.yaml")
   }
 }
 
