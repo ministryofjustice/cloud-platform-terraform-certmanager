@@ -33,6 +33,9 @@ module "cert_manager" {
 | iam_role_nodes         | Nodes IAM role ARN in order to create the KIAM/Kube2IAM                | string   |         | yes |
 | hostzone               | In order to solve ACME Challenges certmanager creates DNS records. We should limit the scope to certain hostzone. If star (*) is used certmanager will control all hostzones | string   |         | yes |
 | cluster_domain_name    | Value used for externalDNS annotations and certmanager                 | string   |         | yes |
+| eks                    | Are we deploying in EKS or not?                                        | bool     | false   | no |
+| eks_cluster_oidc_issuer_url | The OIDC issuer URL from the cluster, it is used for IAM ServiceAccount integration | string     |  | no |
+
 
 ## Outputs
 
