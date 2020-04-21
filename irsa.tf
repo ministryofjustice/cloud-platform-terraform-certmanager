@@ -6,7 +6,7 @@ module "iam_assumable_role_admin" {
   version                       = "~> v2.6.0"
   create_role                   = var.eks ? true : false
   role_name                     = "cert-manager.${var.cluster_domain_name}"
-  provider_url                  = replace(var.eks_cluster_oidc_issuer_url, "https://", "")
+  provider_url                  = var.eks_cluster_oidc_issuer_url
   role_policy_arns              = [aws_iam_policy.cert_manager.0.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:cert-manager:cert-manager"]
 }
