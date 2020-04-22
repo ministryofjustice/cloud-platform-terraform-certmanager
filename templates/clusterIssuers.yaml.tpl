@@ -19,6 +19,4 @@ spec:
         # Here we define a list of DNS-01 providers that can solve DNS challenges
         route53:
           region: eu-west-2
-          %{ if eks == false ~}
           role: ${iam_role}
-          %{ endif ~}
