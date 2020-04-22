@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "cert_manager_irsa" {
   statement {
     actions = ["route53:ChangeResourceRecordSets"]
 
-    resources = ["arn:aws:route53:::hostedzone/${var.hostzone}"]
+    resources = var.hostzone
   }
 
   statement {
