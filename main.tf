@@ -63,6 +63,7 @@ resource "helm_release" "cert_manager" {
   depends_on = [
     var.dependence_deploy,
     null_resource.cert_manager_crds,
+    var.dependence_prometheus,
     var.dependence_opa,
   ]
 
