@@ -21,7 +21,7 @@ variable "cluster_domain_name" {
 
 variable "hostzone" {
   description = "In order to solve ACME Challenges certmanager creates DNS records. We should limit the scope to certain hostzone. If star (*) is used certmanager will control all hostzones"
-  type    = list(string)
+  type        = list(string)
 }
 
 # EKS variables
