@@ -14,7 +14,6 @@ module "cert_manager" {
 
   # This module requires helm and OPA already deployed
   dependence_prometheus  = module.prometheus.helm_prometheus_operator_status
-  dependence_deploy      = null_resource.deploy
   dependence_opa         = module.opa.helm_opa_status
 
   # This section is for EKS
@@ -28,7 +27,6 @@ module "cert_manager" {
 | Name                        | Description                                                   | Type     | Default | Required |
 |-----------------------------|---------------------------------------------------------------|:--------:|:-------:|:--------:|
 | dependence_prometheus       | Prometheus Dependence variable                                         | string   |         | yes |
-| dependence_deploy           | Deploy (helm) dependence variable                                      | string   |         | yes |
 | dependence_opa              | Priority class dependence                                              | string   |         | yes |
 | iam_role_nodes              | Nodes IAM role ARN in order to create the KIAM/Kube2IAM                | string   |         | yes |
 | hostzone                    | To solve ACME Challenges. Scope should be limited to hostzone. If star (*) is used certmanager will control all hostzones | string | | yes |
