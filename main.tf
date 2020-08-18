@@ -138,3 +138,32 @@ resource "null_resource" "cert_manager_monitoring" {
   }
 }
 
+###################################
+# Default Wildcard Certificate(s) #
+###################################
+
+data "template_file" "wilcard_certificate_monitoring" {
+  template = "${file("${path.module}/templates/CertificateMonitoring.yaml.tpl")}"
+  vars = {
+    namespace   = "monitoring"
+    common_name = "*.apps.${var.cluster_domain_name}"
+    alt_name    = var.is_live_cluster ? format("- '*.%s'", var.live_domain) : ""
+  }
+}
+
+resource "null_resource" "wilcard_certificate_monitoring" {
+  depends_on = [helm_release.cert_manager]
+
+  provisioner "local-exec" {
+    command = "kubectl apply -f -<<EOF\n${data.template_file.wilcard_certificate_monitoring.rendered}\nEOF"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -f -<<EOF\n${data.template_file.wilcard_certificate_monitoring.rendered}\nEOF"
+  }
+
+  triggers = {
+    contents = sha1(data.template_file.wilcard_certificate_monitoring.rendered)
+  }
+}
