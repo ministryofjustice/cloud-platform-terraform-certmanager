@@ -32,3 +32,14 @@ variable "eks_cluster_oidc_issuer_url" {
   type        = string
   default     = ""
 }
+
+variable "is_live_cluster" {
+  description = "Used to create the Wildcard certificates (default *.cloud-platform.service.justice.gov.uk)"
+  type        = bool
+  default     = false
+}
+
+variable "live_domain" {
+  description = "The live domain used wilcard Certificate"
+  default     = "cloud-platform.service.justice.gov.uk"
+}
