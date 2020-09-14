@@ -4,6 +4,8 @@ kind: PrometheusRule
 metadata:
   name: certificate-expiry
   namespace: cert-manager
+  labels:
+    prometheus: cloud-platform
 spec:
   groups:
   - name: cert-manager
