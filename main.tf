@@ -24,7 +24,6 @@ resource "kubernetes_namespace" "cert_manager" {
       "cloud-platform.justice.gov.uk/can-use-loadbalancer-services" = "true"
       "iam.amazonaws.com/permitted"                                 = var.eks ? "" : aws_iam_role.cert_manager.0.name
       "cloud-platform-out-of-hours-alert"                           = "true"
-      
     }
   }
 }
