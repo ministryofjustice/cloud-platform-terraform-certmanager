@@ -14,15 +14,18 @@ resource "kubernetes_namespace" "cert_manager" {
       "cloud-platform.justice.gov.uk/environment-name" = "production"
       "cloud-platform.justice.gov.uk/is-production"    = "true"
       "certmanager.k8s.io/disable-validation"          = "true"
+      
     }
 
     annotations = {
       "cloud-platform.justice.gov.uk/application"                   = "cert-manager"
-      "cloud-platform.justice.gov.uk/business-unit"                 = "cloud-platform"
+      "cloud-platform.justice.gov.uk/business-unit"                 = "Platforms"
       "cloud-platform.justice.gov.uk/owner"                         = "Cloud Platform: platforms@digital.justice.gov.uk"
       "cloud-platform.justice.gov.uk/source-code"                   = "https://github.com/ministryofjustice/cloud-platform-infrastructure"
       "cloud-platform.justice.gov.uk/can-use-loadbalancer-services" = "true"
       "iam.amazonaws.com/permitted"                                 = var.eks ? "" : aws_iam_role.cert_manager.0.name
+      "cloud-platform-out-of-hours-alert"                           = "true"
+      
     }
   }
 }
