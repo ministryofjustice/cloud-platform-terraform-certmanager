@@ -42,15 +42,10 @@ resource "null_resource" "cert_manager_crds" {
   }
 }
 
-data "helm_repository" "jetstack" {
-  name = "jetstack"
-  url  = "https://charts.jetstack.io"
-}
-
 resource "helm_release" "cert_manager" {
   name          = "cert-manager"
   chart         = "cert-manager"
-  repository    = data.helm_repository.jetstack.metadata[0].name
+  repository    = "https://charts.jetstack.io"
   namespace     = kubernetes_namespace.cert_manager.id
   version       = local.cert-manager-version
   recreate_pods = true
