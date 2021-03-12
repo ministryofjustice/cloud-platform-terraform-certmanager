@@ -105,7 +105,7 @@ resource "null_resource" "cert_manager_issuers" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl -n cert-manager delete ClusterIssuer letsencrypt-stagging letsencrypt-production"
+    command = "kubectl -n cert-manager delete ClusterIssuer letsencrypt-staging letsencrypt-production"
   }
 
   triggers = {
