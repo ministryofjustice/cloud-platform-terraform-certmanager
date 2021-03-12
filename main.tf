@@ -73,7 +73,7 @@ resource "helm_release" "cert_manager" {
 }
 
 data "template_file" "clusterissuers_staging" {
-  template = "${file("${path.module}/templates/clusterIssuers.yaml.tpl")}"
+  template = file("${path.module}/templates/clusterIssuers.yaml.tpl")
   vars = {
     env         = "staging"
     acme_server = "https://acme-staging-v02.api.letsencrypt.org/directory"
@@ -83,7 +83,7 @@ data "template_file" "clusterissuers_staging" {
 }
 
 data "template_file" "clusterissuers_production" {
-  template = "${file("${path.module}/templates/clusterIssuers.yaml.tpl")}"
+  template = file("${path.module}/templates/clusterIssuers.yaml.tpl")
   vars = {
     env         = "production"
     acme_server = "https://acme-v02.api.letsencrypt.org/directory"
@@ -105,12 +105,7 @@ resource "null_resource" "cert_manager_issuers" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_production.rendered}\nEOF"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "kubectl delete -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_staging.rendered}\nEOF"
+    command = "kubectl -n cert-manager delete ClusterIssuer letsencrypt-staging letsencrypt-production"
   }
 
   triggers = {
