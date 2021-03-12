@@ -105,19 +105,12 @@ resource "null_resource" "cert_manager_issuers" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete -n cert-manager -f -<<EOF\n${self.triggers.contents_production_template}\nEOF"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "kubectl delete -n cert-manager -f -<<EOF\n${self.triggers.contents_staging_template}\nEOF"
+    command = "kubectl -n cert-manager delete ClusterIssuer letsencrypt-stagging letsencrypt-production"
   }
 
   triggers = {
-    contents_staging             = sha1(data.template_file.clusterissuers_staging.rendered)
-    contents_production          = sha1(data.template_file.clusterissuers_production.rendered)
-    contents_production_template = data.template_file.clusterissuers_production.rendered
-    contents_staging_template    = data.template_file.clusterissuers_staging.rendered
+    contents_staging    = sha1(data.template_file.clusterissuers_staging.rendered)
+    contents_production = sha1(data.template_file.clusterissuers_production.rendered)
   }
 }
 
