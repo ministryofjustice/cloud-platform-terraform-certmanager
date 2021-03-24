@@ -5,6 +5,8 @@ ingressShim:
   defaultACMEChallengeType: dns01
   defaultACMEDNS01ChallengeProvider: route53-cloud-platform
 
+installCRDs: false
+
 securityContext:
   enabled: false
 
