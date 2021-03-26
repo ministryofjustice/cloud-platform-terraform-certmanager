@@ -1,6 +1,6 @@
 
 locals {
-  cert-manager-version = "v0.14.1"
+  cert-manager-version = "v1.2.0"
   crd-path             = "https://github.com/jetstack/cert-manager/releases/download"
 }
 
