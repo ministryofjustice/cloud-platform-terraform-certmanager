@@ -28,20 +28,6 @@ resource "kubernetes_namespace" "cert_manager" {
   }
 }
 
-resource "null_resource" "cert_manager_crds" {
-  provisioner "local-exec" {
-    command = "kubectl apply -n cert-manager --validate=false -f ${local.crd-path}/${local.cert-manager-version}/cert-manager.crds.yaml"
-  }
-  provisioner "local-exec" {
-    when = destroy
-    # destroying the CRDs also deletes all resources of type "certificate" (not the actual certs, those are in secrets of type "tls")
-    command = "exit 0"
-  }
-  triggers = {
-    content = sha1("${local.crd-path}/${local.cert-manager-version}/cert-manager.crds.yaml")
-  }
-}
-
 resource "helm_release" "cert_manager" {
   name          = "cert-manager"
   chart         = "cert-manager"
