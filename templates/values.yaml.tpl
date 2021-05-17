@@ -11,9 +11,6 @@ installCRDs: true
 %{ if eks == false ~}
 podAnnotations:
   iam.amazonaws.com/role: "${certmanager_role}"
-
-securityContext:
-  enabled: false
 %{ endif ~}
 
 %{ if eks ~}
