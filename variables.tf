@@ -1,11 +1,3 @@
-variable "dependence_opa" {
-  description = "OPA module dependences in order to be executed."
-}
-
-variable "dependence_prometheus" {
-  description = "Prometheus module dependences in order to be executed."
-}
-
 variable "iam_role_nodes" {
   description = "Nodes IAM role ARN in order to create the KIAM/Kube2IAM"
   type        = string

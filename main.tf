@@ -42,11 +42,6 @@ resource "helm_release" "cert_manager" {
     eks_service_account = module.iam_assumable_role_admin.this_iam_role_arn
   })]
 
-  depends_on = [
-    var.dependence_prometheus,
-    var.dependence_opa,
-  ]
-
   lifecycle {
     ignore_changes = [keyring]
   }
@@ -96,7 +91,6 @@ resource "null_resource" "cert_manager_issuers" {
 
 resource "null_resource" "cert_manager_monitoring" {
   depends_on = [
-    var.dependence_prometheus,
     helm_release.cert_manager,
   ]
 

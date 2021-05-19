@@ -22,21 +22,7 @@ module "cert_manager" {
 }
 ```
 
-## Inputs
+<!--- BEGIN_TF_DOCS --->
 
-| Name                        | Description                                                   | Type     | Default | Required |
-|-----------------------------|---------------------------------------------------------------|:--------:|:-------:|:--------:|
-| dependence_prometheus       | Prometheus Dependence variable                                         | string   |         | yes |
-| dependence_opa              | Priority class dependence                                              | string   |         | yes |
-| iam_role_nodes              | Nodes IAM role ARN in order to create the KIAM/Kube2IAM                | string   |         | yes |
-| hostzone                    | To solve ACME Challenges. Scope should be limited to hostzone. If star (*) is used certmanager will control all hostzones | string | | yes |
-| cluster_domain_name         | Value used for externalDNS annotations and certmanager                 | string   |         | yes |
-| eks                         | Are we deploying in EKS or not?                                        | bool     | false   | no |
-| eks_cluster_oidc_issuer_url | The OIDC issuer URL from the cluster, it is used for IAM ServiceAccount integration | string     |  | no |
+<!--- END_TF_DOCS --->
 
-
-## Outputs
-
-| Name | Description |
-|------|-------------|
-| helm_certmanager_status | This is an output used as a dependency (to know the prometheus-operator chart has been deployed) |
