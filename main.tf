@@ -52,6 +52,12 @@ resource "helm_release" "cert_manager" {
   }
 }
 
+resource "time_sleep" "wait_60_seconds" {
+  depends_on = [helm_release.cert_manager]
+
+  create_duration = "60s"
+}
+
 data "template_file" "clusterissuers_staging" {
   template = file("${path.module}/templates/clusterIssuers.yaml.tpl")
   vars = {
@@ -73,7 +79,7 @@ data "template_file" "clusterissuers_production" {
 }
 
 resource "null_resource" "cert_manager_issuers" {
-  depends_on = [helm_release.cert_manager]
+  depends_on = [time_sleep.wait_60_seconds]
 
   provisioner "local-exec" {
     command = "kubectl apply -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_production.rendered}\nEOF"
