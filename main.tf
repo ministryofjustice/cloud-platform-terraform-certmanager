@@ -82,11 +82,11 @@ resource "null_resource" "cert_manager_issuers" {
   depends_on = [time_sleep.wait_60_seconds]
 
   provisioner "local-exec" {
-    command = "kubectl apply -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_production.rendered}\nEOF"
+    command = "kubectl apply -f -<<EOF\n${data.template_file.clusterissuers_production.rendered}\nEOF"
   }
 
   provisioner "local-exec" {
-    command = "kubectl apply -n cert-manager -f -<<EOF\n${data.template_file.clusterissuers_staging.rendered}\nEOF"
+    command = "kubectl apply -f -<<EOF\n${data.template_file.clusterissuers_staging.rendered}\nEOF"
   }
 
   provisioner "local-exec" {
@@ -112,7 +112,7 @@ resource "null_resource" "cert_manager_monitoring" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete -n cert-manager -f ${path.module}/resources/monitoring/alerts.yaml"
+    command = "kubectl delete -f ${path.module}/resources/monitoring/alerts.yaml"
   }
 
   triggers = {
