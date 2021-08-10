@@ -1,9 +1,3 @@
-
-locals {
-  cert-manager-version = "v1.4.0"
-  crd-path             = "https://github.com/jetstack/cert-manager/releases/download"
-}
-
 resource "kubernetes_namespace" "cert_manager" {
   metadata {
     name = "cert-manager"
@@ -33,7 +27,7 @@ resource "helm_release" "cert_manager" {
   chart         = "cert-manager"
   repository    = "https://charts.jetstack.io"
   namespace     = kubernetes_namespace.cert_manager.id
-  version       = local.cert-manager-version
+  version       = "v1.4.0"
   recreate_pods = true
 
   values = [templatefile("${path.module}/templates/values.yaml.tpl", {
@@ -78,45 +72,20 @@ data "template_file" "clusterissuers_production" {
   }
 }
 
-resource "null_resource" "cert_manager_issuers" {
-  depends_on = [time_sleep.wait_60_seconds]
+resource "kubectl_manifest" "clusterissuers_staging" {
+  yaml_body = data.template_file.clusterissuers_staging.rendered
 
-  provisioner "local-exec" {
-    command = "kubectl apply -f -<<EOF\n${data.template_file.clusterissuers_production.rendered}\nEOF"
-  }
-
-  provisioner "local-exec" {
-    command = "kubectl apply -f -<<EOF\n${data.template_file.clusterissuers_staging.rendered}\nEOF"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "kubectl -n cert-manager delete ClusterIssuer letsencrypt-staging letsencrypt-production"
-  }
-
-  triggers = {
-    contents_staging    = sha1(data.template_file.clusterissuers_staging.rendered)
-    contents_production = sha1(data.template_file.clusterissuers_production.rendered)
-  }
+  depends_on = [helm_release.cert_manager]
 }
 
-resource "null_resource" "cert_manager_monitoring" {
-  depends_on = [
-    var.dependence_prometheus,
-    helm_release.cert_manager,
-  ]
+resource "kubectl_manifest" "clusterissuers_production" {
+  yaml_body = data.template_file.clusterissuers_production.rendered
 
-  provisioner "local-exec" {
-    command = "kubectl apply -n cert-manager -f ${path.module}/resources/monitoring/alerts.yaml"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "kubectl delete -f ${path.module}/resources/monitoring/alerts.yaml"
-  }
-
-  triggers = {
-    alerts = filesha1("${path.module}/resources/monitoring/alerts.yaml")
-  }
+  depends_on = [helm_release.cert_manager]
 }
 
+resource "kubectl_manifest" "monitoring" {
+  yaml_body = file("${path.module}/resources/alerts.yaml")
+
+  depends_on = [helm_release.cert_manager]
+}
