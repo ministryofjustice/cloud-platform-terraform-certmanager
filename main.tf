@@ -72,10 +72,20 @@ data "template_file" "clusterissuers_production" {
   }
 }
 
-data "template_file" "clusterissuers_buypass" {
+data "template_file" "clusterissuers_buypass_staging" {
   template = file("${path.module}/templates/clusterIssuers-buypass.yaml.tpl")
   vars = {
     env         = "staging"
+    acme_server = "https://api.test4.buypass.no/acme/directory"
+    eks         = var.eks
+    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.arn
+  }
+}
+
+data "template_file" "clusterissuers_buypass_production" {
+  template = file("${path.module}/templates/clusterIssuers-buypass.yaml.tpl")
+  vars = {
+    env         = "production"
     acme_server = "https://api.buypass.com/acme/directory"
     eks         = var.eks
     iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.arn
@@ -96,8 +106,14 @@ resource "kubectl_manifest" "clusterissuers_production" {
 }
 
 
-resource "kubectl_manifest" "clusterissuers_buypass" {
-  yaml_body = data.template_file.clusterissuers_buypass.rendered
+resource "kubectl_manifest" "clusterissuers_buypass_staging" {
+  yaml_body = data.template_file.clusterissuers_buypass_staging.rendered
+
+  depends_on = [helm_release.cert_manager]
+}
+
+resource "kubectl_manifest" "clusterissuers_buypass_production" {
+  yaml_body = data.template_file.clusterissuers_buypass_production.rendered
 
   depends_on = [helm_release.cert_manager]
 }
