@@ -7,13 +7,6 @@ ingressShim:
 
 installCRDs: true
 
-
-%{ if eks == false ~}
-podAnnotations:
-  iam.amazonaws.com/role: "${certmanager_role}"
-%{ endif ~}
-
-%{ if eks ~}
 serviceAccount:
   create: true
   annotations: 
@@ -22,7 +15,6 @@ serviceAccount:
 securityContext:
   enabled: true
   fsGroup: 1001
-%{ endif ~}
 
 prometheus:
   enabled: true
