@@ -16,7 +16,6 @@ resource "kubernetes_namespace" "cert_manager" {
       "cloud-platform.justice.gov.uk/owner"                         = "Cloud Platform: platforms@digital.justice.gov.uk"
       "cloud-platform.justice.gov.uk/source-code"                   = "https://github.com/ministryofjustice/cloud-platform-infrastructure"
       "cloud-platform.justice.gov.uk/can-use-loadbalancer-services" = "true"
-      "iam.amazonaws.com/permitted"                                 = var.eks ? "" : aws_iam_role.cert_manager.0.name
       "cloud-platform-out-of-hours-alert"                           = "true"
     }
   }
@@ -31,8 +30,6 @@ resource "helm_release" "cert_manager" {
   recreate_pods = true
 
   values = [templatefile("${path.module}/templates/values.yaml.tpl", {
-    certmanager_role    = var.eks ? "" : aws_iam_role.cert_manager.0.name
-    eks                 = var.eks
     eks_service_account = module.iam_assumable_role_admin.this_iam_role_arn
   })]
 
@@ -57,8 +54,6 @@ data "template_file" "clusterissuers_staging" {
   vars = {
     env         = "staging"
     acme_server = "https://acme-staging-v02.api.letsencrypt.org/directory"
-    eks         = var.eks
-    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.arn
   }
 }
 
@@ -72,6 +67,27 @@ data "template_file" "clusterissuers_production" {
   }
 }
 
+data "template_file" "clusterissuers_buypass_staging" {
+  template = file("${path.module}/templates/clusterIssuers-buypass.yaml.tpl")
+  vars = {
+    env         = "staging"
+    acme_server = "https://api.test4.buypass.no/acme/directory"
+    eks         = var.eks
+    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.arn
+  }
+}
+
+data "template_file" "clusterissuers_buypass_production" {
+  template = file("${path.module}/templates/clusterIssuers-buypass.yaml.tpl")
+  vars = {
+    env         = "production"
+    acme_server = "https://api.buypass.com/acme/directory"
+    eks         = var.eks
+    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.arn
+  }
+}
+
+ 
 resource "kubectl_manifest" "clusterissuers_staging" {
   yaml_body = data.template_file.clusterissuers_staging.rendered
 
@@ -80,6 +96,19 @@ resource "kubectl_manifest" "clusterissuers_staging" {
 
 resource "kubectl_manifest" "clusterissuers_production" {
   yaml_body = data.template_file.clusterissuers_production.rendered
+
+  depends_on = [helm_release.cert_manager]
+}
+
+
+resource "kubectl_manifest" "clusterissuers_buypass_staging" {
+  yaml_body = data.template_file.clusterissuers_buypass_staging.rendered
+
+  depends_on = [helm_release.cert_manager]
+}
+
+resource "kubectl_manifest" "clusterissuers_buypass_production" {
+  yaml_body = data.template_file.clusterissuers_buypass_production.rendered
 
   depends_on = [helm_release.cert_manager]
 }
