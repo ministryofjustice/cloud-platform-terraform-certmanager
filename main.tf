@@ -62,8 +62,6 @@ data "template_file" "clusterissuers_production" {
   vars = {
     env         = "production"
     acme_server = "https://acme-v02.api.letsencrypt.org/directory"
-    eks         = var.eks
-    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.arn
   }
 }
 
