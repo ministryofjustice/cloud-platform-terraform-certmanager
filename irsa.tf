@@ -4,15 +4,14 @@
 module "iam_assumable_role_admin" {
   source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version                       = "3.13.0"
-  create_role                   = var.eks ? true : false
+  create_role                   = true
   role_name                     = "cert-manager.${var.cluster_domain_name}"
   provider_url                  = var.eks_cluster_oidc_issuer_url
-  role_policy_arns              = [var.eks && length(aws_iam_policy.cert_manager) >= 1 ? aws_iam_policy.cert_manager.0.arn : ""]
+  role_policy_arns              = [length(aws_iam_policy.cert_manager) >= 1 ? aws_iam_policy.cert_manager.arn : ""]
   oidc_fully_qualified_subjects = ["system:serviceaccount:cert-manager:cert-manager"]
 }
 
 resource "aws_iam_policy" "cert_manager" {
-  count = var.eks ? 1 : 0
 
   name_prefix = "cert_manager"
   description = "EKS cluster-autoscaler policy for cluster ${var.cluster_domain_name}"

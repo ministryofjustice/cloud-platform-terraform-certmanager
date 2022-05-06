@@ -16,7 +16,6 @@ resource "kubernetes_namespace" "cert_manager" {
       "cloud-platform.justice.gov.uk/owner"                         = "Cloud Platform: platforms@digital.justice.gov.uk"
       "cloud-platform.justice.gov.uk/source-code"                   = "https://github.com/ministryofjustice/cloud-platform-infrastructure"
       "cloud-platform.justice.gov.uk/can-use-loadbalancer-services" = "true"
-      "iam.amazonaws.com/permitted"                                 = var.eks ? "" : aws_iam_role.cert_manager.0.name
       "cloud-platform-out-of-hours-alert"                           = "true"
     }
   }
@@ -31,8 +30,6 @@ resource "helm_release" "cert_manager" {
   recreate_pods = true
 
   values = [templatefile("${path.module}/templates/values.yaml.tpl", {
-    certmanager_role    = var.eks ? "" : aws_iam_role.cert_manager.0.name
-    eks                 = var.eks
     eks_service_account = module.iam_assumable_role_admin.this_iam_role_arn
   })]
 
@@ -57,8 +54,6 @@ data "template_file" "clusterissuers_staging" {
   vars = {
     env         = "staging"
     acme_server = "https://acme-staging-v02.api.letsencrypt.org/directory"
-    eks         = var.eks
-    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.arn
   }
 }
 
@@ -67,8 +62,6 @@ data "template_file" "clusterissuers_production" {
   vars = {
     env         = "production"
     acme_server = "https://acme-v02.api.letsencrypt.org/directory"
-    eks         = var.eks
-    iam_role    = var.eks ? "" : aws_iam_role.cert_manager.0.arn
   }
 }
 
