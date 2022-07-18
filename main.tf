@@ -21,6 +21,24 @@ resource "kubernetes_namespace" "cert_manager" {
   }
 }
 
+// Pebble is a simple, lightweight, and extensible certificate manager.
+// It is used as a test issuer for cert-manager resources.
+resource "helm_release" "pebble" {
+  name = "pebble"
+  chart = "https://jupyterhub.github.io/helm-chart/"
+  namespace     = kubernetes_namespace.cert_manager.id
+  version = "1.0.0"
+
+  depends_on = [
+    var.dependence_prometheus,
+    var.dependence_opa,
+  ]
+
+  lifecycle {
+    ignore_changes = [keyring]
+  }
+}
+
 resource "helm_release" "cert_manager" {
   name          = "cert-manager"
   chart         = "cert-manager"
