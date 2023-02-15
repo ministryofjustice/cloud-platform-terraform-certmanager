@@ -77,6 +77,12 @@ resource "kubectl_manifest" "clusterissuers_production" {
   depends_on = [helm_release.cert_manager]
 }
 
+resource "kubectl_manifest" "clusterissuer_selfsigned" {
+  yaml_body = file("${path.module}/templates/clusterIssuer-selfsigned.yaml")
+
+  depends_on = [helm_release.cert_manager]
+}
+
 resource "kubectl_manifest" "monitoring" {
   yaml_body = file("${path.module}/resources/alerts.yaml")
 
