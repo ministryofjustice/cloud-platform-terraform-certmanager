@@ -11,7 +11,7 @@ module "cert_manager" {
   cluster_domain_name = data.terraform_remote_state.cluster.outputs.cluster_domain_name
   hostzone            = terraform.workspace == local.live_workspace ? "*" : data.terraform_remote_state.cluster.outputs.hosted_zone_id
 
-  # This module requires helm to be already deployed
+  # This module requires Prometheus to be already deployed
   dependence_prometheus  = module.prometheus.helm_prometheus_operator_status
 }
 ```
