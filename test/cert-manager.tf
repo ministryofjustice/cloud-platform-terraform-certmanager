@@ -6,5 +6,4 @@ module "cert_manager" {
   hostzone            = ["AAATEST"]
 
   dependence_prometheus = "ignore"
-  dependence_opa        = "ignore"
 }

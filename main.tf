@@ -35,7 +35,6 @@ resource "helm_release" "cert_manager" {
 
   depends_on = [
     var.dependence_prometheus,
-    var.dependence_opa,
   ]
 
   lifecycle {
