@@ -8,6 +8,7 @@ resource "kubernetes_namespace" "cert_manager" {
       "cloud-platform.justice.gov.uk/environment-name" = "production"
       "cloud-platform.justice.gov.uk/is-production"    = "true"
       "certmanager.k8s.io/disable-validation"          = "true"
+      "pod-security.kubernetes.io/audit"               = "privileged"
     }
 
     annotations = {
@@ -35,7 +36,6 @@ resource "helm_release" "cert_manager" {
 
   depends_on = [
     var.dependence_prometheus,
-    var.dependence_opa,
   ]
 
   lifecycle {
@@ -73,6 +73,12 @@ resource "kubectl_manifest" "clusterissuers_staging" {
 
 resource "kubectl_manifest" "clusterissuers_production" {
   yaml_body = data.template_file.clusterissuers_production.rendered
+
+  depends_on = [helm_release.cert_manager]
+}
+
+resource "kubectl_manifest" "clusterissuer_selfsigned" {
+  yaml_body = file("${path.module}/templates/clusterIssuer-selfsigned.yaml")
 
   depends_on = [helm_release.cert_manager]
 }
