@@ -13,7 +13,6 @@ serviceAccount:
     eks.amazonaws.com/role-arn: "${eks_service_account}"
 
 securityContext:
-  enabled: true
   fsGroup: 1001
 
 prometheus:
