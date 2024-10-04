@@ -39,12 +39,6 @@ resource "helm_release" "cert_manager" {
   }
 }
 
-# resource "time_sleep" "wait_60_seconds" {
-#   depends_on = [helm_release.cert_manager]
-
-#   create_duration = "60s"
-# }
-
 data "template_file" "clusterissuers_staging" {
   template = file("${path.module}/templates/clusterIssuers.yaml.tpl")
   vars = {
