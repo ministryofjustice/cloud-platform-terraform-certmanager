@@ -39,30 +39,20 @@ resource "helm_release" "cert_manager" {
   }
 }
 
-data "template_file" "clusterissuers_staging" {
-  template = file("${path.module}/templates/clusterIssuers.yaml.tpl")
-  vars = {
+resource "kubectl_manifest" "clusterissuers_staging" {
+  yaml_body = templatefile("${path.module}/templates/clusterIssuers.yaml.tpl", {
     env         = "staging"
     acme_server = "https://acme-staging-v02.api.letsencrypt.org/directory"
-  }
-}
-
-data "template_file" "clusterissuers_production" {
-  template = file("${path.module}/templates/clusterIssuers.yaml.tpl")
-  vars = {
-    env         = "production"
-    acme_server = "https://acme-v02.api.letsencrypt.org/directory"
-  }
-}
-
-resource "kubectl_manifest" "clusterissuers_staging" {
-  yaml_body = data.template_file.clusterissuers_staging.rendered
+  })
 
   depends_on = [helm_release.cert_manager]
 }
 
 resource "kubectl_manifest" "clusterissuers_production" {
-  yaml_body = data.template_file.clusterissuers_production.rendered
+  yaml_body = templatefile("${path.module}/templates/clusterIssuers.yaml.tpl", {
+    env         = "production"
+    acme_server = "https://acme-v02.api.letsencrypt.org/directory"
+  })
 
   depends_on = [helm_release.cert_manager]
 }
