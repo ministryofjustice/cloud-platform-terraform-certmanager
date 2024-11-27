@@ -19,3 +19,12 @@ prometheus:
   enabled: true
   servicemonitor:
     enabled: true
+
+replicaCount: "${certman_replicas}"
+
+webhook:
+  replicaCount: "${webhook_replicas}"
+
+cainjector:
+  replicaCount: "${cainjector_replicas}"
+  

@@ -1,3 +1,4 @@
+
 resource "kubernetes_namespace" "cert_manager" {
   metadata {
     name = "cert-manager"
@@ -32,6 +33,9 @@ resource "helm_release" "cert_manager" {
 
   values = [templatefile("${path.module}/templates/values.yaml.tpl", {
     eks_service_account = module.iam_assumable_role_admin.this_iam_role_arn
+    certman_replicas = var.is_production ? 2 : 1
+    webhook_replicas = var.is_production ? 3 : 1
+    cainjector_replicas = var.is_production ? 2 : 1
   })]
 
   lifecycle {
