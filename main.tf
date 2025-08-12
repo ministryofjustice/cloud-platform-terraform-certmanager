@@ -28,7 +28,7 @@ resource "helm_release" "cert_manager" {
   chart         = "cert-manager"
   repository    = "https://charts.jetstack.io"
   namespace     = kubernetes_namespace.cert_manager.id
-  version       = "v1.13.1"
+  version       = "v1.14.7"
   recreate_pods = true
 
   values = [templatefile("${path.module}/templates/values.yaml.tpl", {
