@@ -32,11 +32,11 @@ prometheus:
   servicemonitor:
     enabled: true
 
-replicaCount: "${certman_replicas}"
+replicaCount: ${certman_replicas}
 
 webhook:
-  replicaCount: "${webhook_replicas}"
+  replicaCount: ${webhook_replicas}
 
 cainjector:
-  replicaCount: "${cainjector_replicas}"
+  replicaCount: ${cainjector_replicas}
   
