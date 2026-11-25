@@ -39,4 +39,11 @@ webhook:
 
 cainjector:
   replicaCount: ${cainjector_replicas}
-  
+
+config:
+  enableGatewayAPI: true
+  enableGatewayAPIListenerSet: true
+  # NOTE: The ListenerSets feature gate is currently in ALPHA state and may change in future releases.
+  # See https://cert-manager.io/docs/usage/gateway/#listenerset for more information.
+  featureGates:
+    ListenerSets: true  
